@@ -1,0 +1,9 @@
+prereqs:
+  runtime:
+    requires:
+      List::Util: { version: '1.60' }
+      Socket: { version: '2.032' }
+      perl: { version: '5.008001' }
+  test:
+    requires:
+      Test::More: { version: '0.98' }
