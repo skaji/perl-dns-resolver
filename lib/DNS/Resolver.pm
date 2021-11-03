@@ -7,6 +7,11 @@ our $VERSION = '0.001';
 use List::Util 1.60 ();
 use Socket 2.032 ();
 
+my $HAS_AI_ADDRCONFIG = do {
+    local $@;
+    eval { my $x = Socket::AI_ADDRCONFIG; 1 };
+};
+
 sub new {
     my ($class, %hint) = @_;
     $hint{socktype} = Socket::SOCK_STREAM if !exists $hint{socktype};
@@ -73,12 +78,12 @@ sub reverse_resolve {
 sub _resolve_addrinfo {
     my ($self, $host, %hint) = @_;
     my $service = "0";
-    my $hint = {
-        flags => Socket::AI_ADDRCONFIG,
-        %{ $self->{hint} },
-        %hint,
-    };
-    my ($err, @info) = Socket::getaddrinfo $host, $service, $hint;
+    my $flags = $self->{hint}{flags} || $hint{flags} || 0;
+    if ($HAS_AI_ADDRCONFIG) {
+        $flags = $flags | Socket::AI_ADDRCONFIG;
+    }
+    %hint = (%{$self->{hint}}, %hint, flags => $flags);
+    my ($err, @info) = Socket::getaddrinfo $host, $service, \%hint;
     ($err, @info);
 }
 
